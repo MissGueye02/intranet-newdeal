@@ -47,7 +47,12 @@ jobs:
 
       - name: Pull Docker image from Docker Hub
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          LOWER_USERNAME=$(echo "${DOCKERHUB_USERNAME}" | tr '[:upper:]' '[:lower:]' | xargs)
+          docker pull "${LOWER_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKER_TAG: ${{ env.DOCKER_TAG }}
 
       - name: Stop and remove old container
         run: |
@@ -56,7 +61,32 @@ jobs:
 
       - name: Run new container on port 80
         run: |
+          LOWER_USERNAME=$(echo "${DOCKERHUB_USERNAME}" | tr '[:upper:]' '[:lower:]' | xargs)
           docker run -d --name intranet-newdeal \
             --restart unless-stopped \
             -p 80:80 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+            "${LOWER_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKER_TAG: ${{ env.DOCKER_TAG }}
+
+  notify:
+    needs: [security-scan, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER_ADDRESS }}
+          server_port: ${{ secrets.MAIL_SERVER_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: |
+            [GitHub Actions] Pipeline CD (${{ github.repository }})
+            - Status: ${{ job.status }}
+          to: moussawade@groupeisi.com
+          from: GitHub Actions
+          body: |
+            Workflow ${{ github.workflow }} pour le dépôt ${{ github.repository }} s'est terminé avec le statut : ${{ job.status }}.
