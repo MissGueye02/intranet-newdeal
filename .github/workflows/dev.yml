@@ -68,35 +68,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
- push-to-dockerhub:
-  needs: security-scan
-  runs-on: ubuntu-latest
-  steps:
-    - name: Download Docker image artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-image
-        path: /tmp
+  push-to-dockerhub:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
 
-    - name: Load Docker image and tag
-      run: |
-        docker load -i /tmp/image.tar
-        docker tag "${DOCKER_IMAGE}:${DOCKER_TAG}" "${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
-      env:
-        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-        DOCKER_TAG: ${{ env.DOCKER_TAG }}
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      - name: Load Docker image and tag
+        run: |
+          docker load -i /tmp/image.tar
+          docker tag "${DOCKER_IMAGE}:${DOCKER_TAG}" "${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+        env:
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKER_TAG: ${{ env.DOCKER_TAG }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Push Docker image to Docker Hub
-      run: |
-        docker push "${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
-      env:
-        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-        DOCKER_TAG: ${{ env.DOCKER_TAG }}
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push "${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${DOCKER_TAG}"
+        env:
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKER_TAG: ${{ env.DOCKER_TAG }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
