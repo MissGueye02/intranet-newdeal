@@ -47,7 +47,8 @@ jobs:
 
       - name: Pull Docker image from Docker Hub
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          LOWER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]' | xargs)
+          docker pull ${LOWER_USERNAME}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
 
       - name: Stop and remove old container
         run: |
@@ -56,7 +57,8 @@ jobs:
 
       - name: Run new container on port 80
         run: |
+          LOWER_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]' | xargs)
           docker run -d --name intranet-newdeal \
             --restart unless-stopped \
             -p 80:80 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+            ${LOWER_USERNAME}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
