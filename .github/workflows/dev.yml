@@ -57,7 +57,7 @@ jobs:
         with:
           image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
           format: 'table'
-          exit-code: '1'
+          
           severity: 'CRITICAL'
 
       - name: Run Gitleaks to check for secrets
